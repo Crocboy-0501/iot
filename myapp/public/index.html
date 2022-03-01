@@ -2,10 +2,194 @@
   <head>
     <meta charset="utf-8">
     <title>MQTT图片测试</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
 
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js" integrity="sha512-vRqhAr2wsn+/cSsyz80psBbCcqzz2GTuhGk3bq3dAyytz4J/8XwFqMjiAGFBj+WM95lHBJ9cDf87T3P8yMrY7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.4/mqtt.js" integrity="sha512-32GYwONQ0Oes2Uf/NB1AyxZdztkeIHSEWKle8/p05CHImdzPZX6wXm5wB8w7/E5EKleUenLhQO5C3wUHjkztPw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        html {
+          font-size: 10px;
+        }
+
+        #header{
+          text-align: center;
+          font-size: 2rem;
+          font-weight: bold;
+        }
+        #con{
+          text-align: center;
+          font-size: 3rem;
+          font-weight: bolder;
+        }
+        #main{
+          background: rgba(177, 37, 154, 0.276);
+          border: 2px solid rgb(255,84,104);
+          padding: 10px;
+
+          margin:20px auto;
+          
+
+        } 
+               
+    </style>
   </head>
   <body>
-    <p>插入来自一个网站的图片::</p>
-    <img src="output.jpg" alt="Lamp" width="526" height="617">
+    
+
+    <ul class="layui-nav layui-bg-cyan">
+      <li class="layui-nav-item"><a href="">主页</a></li>
+      <li class="layui-nav-item"><a href="indexTest.html">数据分析</a></li>
+      <li class="layui-nav-item"><a href="">图像处理</a></li>
+
+    </ul>
+
+
+
+    <div class="layui-bg-gray" style="padding: 30px;">
+      <div class="layui-row layui-col-space15">
+        <div class="layui-col-md3">
+          <div class="layui-card">
+            <div class="layui-card-header" id="header">温湿度</div>
+            <div class="layui-card-body" id="con">
+              <span id="temp">??</span> &deg /
+              <span id="hum">??</span> %
+              <!-- 20 &#8451 / 20 &#37; -->
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md3">
+          <div class="layui-card">
+            <div class="layui-card-header" id="header">光照</div>
+            <div class="layui-card-body" id="con">
+              <span id="lux">??</span> Lux
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md3">
+          <div class="layui-card">
+            <div class="layui-card-header" id="header">PM2.5/PM10</div>
+            <div class="layui-card-body" id="con">
+              <span id="PM25">??</span> μg/m3 / <span id="PM10">??</span> μg/m3
+            </div>
+          </div>
+        </div>
+        <div class="layui-col-md3">
+          <div class="layui-card">
+            <div class="layui-card-header" id="header">风向/风速</div>
+            <div class="layui-card-body" id="con">
+              <span id="windD">??</span> m/s / <span id="windV">??</span> m/s
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> 
+    
+    <script type="text/javascript">
+        $(function(){
+          var socket = io.connect();
+          socket.on('mqtt', function (data) {
+            var json = JSON.parse(data.msg);
+            $("#temp").html(json.temp);
+            $("#hum").html(json.humid);
+            $("#lux").html(json.lux);
+            $("#PM25").html(json.pm25);
+            $("#PM10").html(json.pm10);
+            $("#windD").html(json.windD);
+            $("#windV").html(json.windV);
+          });
+        });
+    </script>
+    
+    <div id="main" style="width: 1000px;height:350px;"></div>
+    <script type="text/javascript">
+
+        var chartDom = document.getElementById('main');
+        var myChart = echarts.init(chartDom);
+        var option;
+
+        option = {
+          title: {
+            text: 'Stacked Line'
+          },
+          tooltip: {
+            trigger: 'axis'
+          },
+          legend: {
+            data: ['温度', '湿度', '光照', 'PM2.5', 'PM10', '风向', '风速']
+          },
+          grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+          },
+          toolbox: {
+            feature: {
+              saveAsImage: {}
+            }
+          },
+          xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+          },
+          yAxis: {
+            type: 'value'
+          },
+          series: [
+            {
+              name: '温度',
+              type: 'line',
+              stack: 'Total',
+              data: [120, 132, 101, 134, 90, 230, 210]
+            },
+            {
+              name: '湿度',
+              type: 'line',
+              stack: 'Total',
+              data: [220, 182, 191, 234, 290, 330, 310]
+            },
+            {
+              name: '光照',
+              type: 'line',
+              stack: 'Total',
+              data: [150, 232, 201, 154, 190, 330, 410]
+            },
+            {
+              name: 'PM2.5',
+              type: 'line',
+              stack: 'Total',
+              data: [320, 332, 301, 334, 390, 330, 320]
+            },
+            {
+              name: 'PM10',
+              type: 'line',
+              stack: 'Total',
+              data: [820, 932, 901, 934, 1290, 1330, 1320]
+            },
+            {
+              name: '风向',
+              type: 'line',
+              stack: 'Total',
+              data: [80, 32, 91, 94, 129, 130, 120]
+            },
+            {
+              name: '风速',
+              type: 'line',
+              stack: 'Total',
+              data: [825, 93, 981, 34, 120, 130, 320]
+            }
+          ]
+        };
+
+        option && myChart.setOption(option);
+
+    </script>
+    
+
   </body>
 </html>
