@@ -103,9 +103,14 @@
             $("#windD").html(json.windD);
             $("#windV").html(json.windV);
           });
+
+          socket.on('photo', function(data) {
+            $("#userImge").attr("src","data:image/jpg;base64,"+data.msg);
+          })
+
         });
     </script>
-    
+    <img src="apple.jpg" id="userImge" style="width: 50%;height:50%;" name="userImge" >
     <div id="main" style="width: 1000px;height:350px;"></div>
     <script type="text/javascript">
 
