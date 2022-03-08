@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%=title%></title>
+    <style>
+        div {
+            width: 800px;
+            margin: 0 auto;
+        }
+ 
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 800px;
+        }
+ 
+        table tr td, table tr th {
+            border-top: solid 1px #ccc;
+            border-left: solid 1px #ccc;
+            line-height: 40px;
+            text-align: center;
+        }
+ 
+        table tr td:last-child, table tr th:last-child {
+            border-right: solid 1px #ccc;
+        }
+ 
+        table tr:last-child td {
+            border-bottom: solid 1px #ccc;
+        }
+ 
+        a {
+            text-decoration: none;
+            font-size: 14px;
+        }
+ 
+        .text {
+            width: 150px;
+        }
+    </style>
+    <link rel="stylesheet" href="layui/css/layui.css" media="all">
+    <script src="layui/layui.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+</head>
+<body>
+ 
+<div id="app">
+    <span id="finds">
+    <div style="">
+        <div style="float: left;width:10%;">
+            <a class="layui-btn" data-type="add">新增</a>
+        </div>
+        <div style="float: right;width:90%;">
+            <form action="/student/search" method="post" onsubmit="return false" id="forms">
+                姓名：<input type="text" name="s_name" id="s_name" class="text"> &nbsp;&nbsp;
+                <input type="submit" class="layui-btn" value="查询" @click="find()">
+            </form>
+        </div>
+    </div>
+ 
+    <table style="">
+        <tr>
+            <th width="10%">编号</th>
+            <th width="15%">姓名</th>
+            <th width="10%">年龄</th>
+            <th width="50%">地址</th>
+              <th width="15%">操作</th>
+        </tr>
+        <tr v-for="item in list">
+            <td>{{item.id}}</td>
+            <td>{{item.name}}</td>
+            <td>{{item.age}}</td>
+            <td>{{item.adress}}</td>
+             <td>
+                <a href="#" class="layui-btn-danger" @click="remove(item.id)">删除</a>&nbsp;&nbsp;
+                 <a href="#" class="layui-btn-primary" @click="edit(item)">修改</a>
+            </td>
+        </tr>
+    </table>
+        </span>
+    <div>
+        <!--隐藏域-->
+        <div style="margin:3px; display: none" id="box1" target="chance">
+            <form class="layui-form" onsubmit="return false" id="chancefrom">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">名字</label>
+ 
+                    <input type="text" placeholder="必填项" lay-verify="required" style="width: 570px"
+                           class="layui-input" id="name" name=name>
+ 
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">年龄</label>
+                    <input type="text" placeholder="必填项" lay-verify="required" style="width: 570px"
+                           class="layui-input" id="age" name=age>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">地址</label>
+                    <input type="text" placeholder="必填项" lay-verify="required" style="width: 570px"
+                           class="layui-input" id="adress" name=adress>
+                </div>
+            </form>
+        </div>
+ 
+    </div>
+</div>
+<!--public文件夹-->
+<script src="javascripts/jquery-3.3.1.js"></script>
+<script src="javascripts/vue.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data: {
+            list: find(),
+        }, methods: {
+            find() {
+                vue.list = find();
+            },edit(item){
+                $("#name").val(item.name)
+                $("#age").val(item.age)
+                $("#adress").val(item.adress)
+                layer.open({
+                    type: 1,
+                    area: ['80%', '80%'],
+                    fixed: false, // 不固定
+                    maxmin: true,
+                    shadeClose: true,
+                    content: $('#box1'),
+                    btn: ['确认', '取消'],
+                    yes: function (index, layero) {
+                        $.post("/student/update", {
+                            name: $("#name").val(),
+                            age: $("#age").val(), adress: $("#adress").val(),
+                            id:item.id
+                        }, function (msg) {
+                            if (msg.affectedRows>0) {
+                                layer.msg("修改成功")
+                                vue.list=find();
+                                layer.closeAll();
+                            } else {
+                                layer.msg("修改失败")
+                                alert("增加失败")
+                            }
+                        })
+ 
+                    }
+ 
+                })
+ 
+            }
+            ,
+            remove(id){
+                if (confirm("确定要删除这条数据吗?")) {
+                    $.post("/student/del",{id:id},function(msg){
+                        if (msg.affectedRows>0) {
+                            alert("删除成功")
+                            vue.list = find();
+                        }else{
+                            alert("删除失败")
+                        }
+                    })
+                }
+ 
+            }
+        }
+ 
+    });
+    //使用layui 渲染页面
+    layui.use(['table', 'form', 'layer'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        var layer = layui.layer;
+ 
+        //创建事件
+        var $ = layui.$, active = {//datatype
+            //新增事件
+            add: function () {
+                $("#name").val("")
+                $("#age").val("")
+                $("#adress").val("")
+                layer.open({
+                    type: 1,
+                    area: ['80%', '80%'],
+                    fixed: false, // 不固定
+                    maxmin: true,
+                    shadeClose: true,
+                    content: $('#box1'),
+                    btn: ['确认', '取消'],
+                    yes: function (index, layero) {
+                        $.post("/student/add", {
+                            name: $("#name").val(),
+                            age: $("#age").val(), adress: $("#adress").val()
+                        }, function (msg) {
+                            if (msg.affectedRows>0) {
+                                layer.msg("增加成功")
+                                vue.list=find();
+                                    layer.closeAll();
+                            } else {
+                                layer.msg("增加失败")
+                                alert("增加失败")
+                            }
+                        })
+ 
+                    }
+ 
+                })
+            }
+ 
+        }
+//绑定事件
+        $('.layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+ 
+ 
+    })
+ 
+ 
+    //查询
+    function find() {
+        var data2;
+        $.ajax({
+            type: "post",
+            url: "/student/search",
+            dataType: "json",
+            data: {//传给servlet的数据,
+                s_name: $('#s_name').val(),
+            },
+            async: false,//加上这个ajax先执行
+            success: function (data) {
+                console.log(data);
+                //返回处理的方法
+                data2 = data;
+            }
+        });
+        return data2;
+    }
+ 
+ 
+</script>
+ 
+ 
+</body>
+</html>
